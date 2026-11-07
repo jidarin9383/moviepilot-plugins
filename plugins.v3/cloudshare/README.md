@@ -1,5 +1,7 @@
 # CloudShare
 
+[中文使用说明](README.zh-CN.md)
+
 **Experimental.** CloudShare combines PanSou and Telegram search with Quark
 and Alipan cloud-save workflows. Official desktop clients on a logged-in,
 awake Mac write directly to a NAS SMB staging directory. MoviePilot then

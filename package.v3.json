@@ -11,7 +11,8 @@
     "history": {
       "v0.2.0": "新增分区设置、独立网盘与 Telegram 开关、Bot 和代理配置、任务概览及持久使用记录。",
       "v0.1.0": "接入夸克分享搜索、下载队列和整理接口。"
-    }
+    },
+    "plugin_readme": "https://github.com/jidarin9383/moviepilot-plugins/blob/main/plugins.v3/cloudshare/README.zh-CN.md"
   },
   "PublicBT": {
     "name": "公开 BT 搜索",
@@ -27,6 +28,7 @@
       "v0.1.3": "拦截手动下载未选独立下载器的请求，避免误投 PT 默认下载器。",
       "v0.1.1": "为公开 BT 默认下载补充专用目录，保留用户手动选择的路径。",
       "v0.1.0": "接入 Prowlarr 公开 BT 搜索与独立下载器路由。"
-    }
+    },
+    "plugin_readme": "https://github.com/jidarin9383/moviepilot-plugins/blob/main/plugins.v3/publicbt/README.zh-CN.md"
   }
 }

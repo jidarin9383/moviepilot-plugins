@@ -1,5 +1,7 @@
 # PublicBT
 
+[中文使用说明](README.zh-CN.md)
+
 PublicBT integrates Prowlarr torrent searches into MoviePilot's normal resource
 search and routes them to a separately configured downloader.
 

@@ -1,5 +1,7 @@
 # CloudShare Mac dispatcher
 
+[中文配置说明](README.zh-CN.md)
+
 The Swift helper handles Quark and Alipan manifests written by CloudShare to
 the shared staging directory. It uses the official clients, not qBittorrent
 or Transmission, for cloud-drive files.
