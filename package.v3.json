@@ -1,0 +1,32 @@
+{
+  "CloudShare": {
+    "name": "CloudShare",
+    "description": "汇集夸克、阿里云盘与 Telegram 资源，下载到 NAS 并整理入库。",
+    "labels": "资源搜索",
+    "version": "0.2.0",
+    "icon": "Moviepilot_A.png",
+    "author": "Darin Ji",
+    "level": 1,
+    "system_version": ">=3.2.4,<3.3.0",
+    "history": {
+      "v0.2.0": "新增分区设置、独立网盘与 Telegram 开关、Bot 和代理配置、任务概览及持久使用记录。",
+      "v0.1.0": "接入夸克分享搜索、下载队列和整理接口。"
+    }
+  },
+  "PublicBT": {
+    "name": "公开 BT 搜索",
+    "description": "聚合公开 BT 搜索，管理独立下载路由并记录使用过程。",
+    "labels": "资源搜索",
+    "version": "0.2.0",
+    "icon": "Moviepilot_A.png",
+    "author": "Darin Ji",
+    "level": 1,
+    "system_version": ">=3.2.4,<3.3.0",
+    "history": {
+      "v0.2.0": "新增分区设置、Prowlarr 连接测试、私密 Key 保留、搜索与下载交接记录及分页数据页。",
+      "v0.1.3": "拦截手动下载未选独立下载器的请求，避免误投 PT 默认下载器。",
+      "v0.1.1": "为公开 BT 默认下载补充专用目录，保留用户手动选择的路径。",
+      "v0.1.0": "接入 Prowlarr 公开 BT 搜索与独立下载器路由。"
+    }
+  }
+}
