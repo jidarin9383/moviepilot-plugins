@@ -101,7 +101,7 @@ class PublicBT(_PluginBase):
     plugin_name = "公开 BT 搜索"
     plugin_desc = "聚合公开 BT 搜索，管理独立下载路由并记录使用过程。"
     plugin_icon = "Moviepilot_A.png"
-    plugin_version = "0.2.0"
+    plugin_version = "0.2.1"
     plugin_label = "资源搜索"
     plugin_author = "Darin Ji"
     plugin_config_prefix = "publicbt_"
@@ -271,11 +271,26 @@ class PublicBT(_PluginBase):
         """
         调用宿主 HTTP 工具，禁止将带凭据的请求重定向到其它地址。
         """
+        catalog = await self._fetch(config, "/api/v1/indexer", {})
+        if not isinstance(catalog, list):
+            raise PublicBTError("invalid_indexer_catalog")
+        allowed = {
+            row["id"] for row in catalog
+            if isinstance(row, dict) and isinstance(row.get("id"), int)
+            and row.get("privacy") == "public" and row.get("protocol") == "torrent"
+            and row.get("enable") is True
+            and (not config.indexer_ids or row["id"] in config.indexer_ids)
+        }
+        if not allowed:
+            return []
+        params = {**params, "indexerIds": sorted(allowed)}
         rows = await self._fetch(config, "/api/v1/search", params)
         if not isinstance(rows, list):
             raise PublicBTError("invalid_response")
         torrents = []
         for row in rows:
+            if not isinstance(row, dict) or row.get("indexerId") not in allowed:
+                continue
             try:
                 torrent = self._map_result(row, config)
                 if torrent is not None:

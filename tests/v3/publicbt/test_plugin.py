@@ -94,7 +94,15 @@ def response(module, rows, status=200):
     result = Mock(status_code=status)
     result.json.return_value = rows
     result.aclose = AsyncMock()
-    module.AsyncRequestUtils.return_value.get_res = AsyncMock(return_value=result)
+    catalog = Mock(status_code=200)
+    catalog.json.return_value = [
+        {"id": identifier, "privacy": "public", "protocol": "torrent", "enable": True}
+        for identifier in (1, 2, 3)
+    ]
+    catalog.aclose = AsyncMock()
+    async def get_response(url, **kwargs):
+        return catalog if url.endswith("/api/v1/indexer") else result
+    module.AsyncRequestUtils.return_value.get_res = AsyncMock(side_effect=get_response)
     return result
 
 
@@ -250,7 +258,7 @@ def test_unknown_type_searches_both_categories_with_no_indexer_restriction(modul
     assert len(plugin.search_torrents(site=None, keyword="Example")) == 1
     params = module.AsyncRequestUtils.return_value.get_res.call_args.kwargs["params"]
     assert params["categories"] == [2000, 5000]
-    assert "indexerIds" not in params
+    assert params["indexerIds"] == [1, 2, 3]
 
 
 def test_sync_entry_can_be_called_from_an_event_loop(module, plugin):
@@ -490,3 +498,22 @@ def test_page_has_explicit_native_rows_and_actions_without_secrets(module, plugi
     assert any(x["component"] == "VTable" for x in rendered)
     assert any(x["component"] == "td" and x.get("text") == "Example" for x in rendered)
     assert any(x.get("text") == "测试连接" and x.get("events") for x in rendered)
+
+
+def test_private_and_unknown_indexers_cannot_enter_public_download_route(module, plugin):
+    plugin._fetch = AsyncMock(side_effect=[
+        [{"id": 2, "privacy": "public", "protocol": "torrent", "enable": True},
+         {"id": 3, "privacy": "private", "protocol": "torrent", "enable": True}],
+        [release(indexerId=3), release(indexerId=99), release(indexerId=2)],
+    ])
+    results = asyncio.run(plugin.async_search_torrents(keyword="Example"))
+    assert len(results) == 1
+    assert plugin._fetch.call_args.args[2]["indexerIds"] == [2]
+
+
+def test_no_public_indexers_does_not_issue_search(module, plugin):
+    plugin._fetch = AsyncMock(return_value=[
+        {"id": 2, "privacy": "private", "protocol": "torrent", "enable": True},
+    ])
+    assert asyncio.run(plugin.async_search_torrents(keyword="Example")) == []
+    assert plugin._fetch.await_count == 1

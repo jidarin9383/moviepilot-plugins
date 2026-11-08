@@ -166,6 +166,8 @@ class JobQueue:
             if job.get("provider") == "aliyun":
                 self._run_aliyun(key, job, check)
                 return
+            if self.worker.provider is None:
+                raise JobWaiting("Quark credentials are not configured")
             refresh = None
             if job["files"]:
                 candidate = Candidate(job["share"], job.get("title") or job["keyword"], "")

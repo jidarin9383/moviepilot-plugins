@@ -261,6 +261,7 @@ func processAlipanTasks() {
                         throw DispatchFailure("Alipan task directory contains unexpected files.")
                     }
                 }
+                _ = try ensureClientRunning("com.alicloud.smartdrive")
                 try Data("launching\n".utf8).write(to: claim, options: .withoutOverwriting)
                 let payload: [String: Any] = ["userName": "CloudShare", "userId": task.userId,
                                               "driveId": task.driveId, "fileIds": [task.folderID]]
@@ -283,13 +284,30 @@ func processAlipanTasks() {
     }
 }
 
+func ensureClientRunning(_ identifier: String) throws -> NSRunningApplication {
+    if let app = NSRunningApplication.runningApplications(withBundleIdentifier: identifier).first {
+        return app
+    }
+    guard let url = NSWorkspace.shared.urlForApplication(withBundleIdentifier: identifier) else {
+        throw DispatchFailure("Install the official cloud client before dispatching downloads.")
+    }
+    let configuration = NSWorkspace.OpenConfiguration()
+    configuration.activates = true
+    NSWorkspace.shared.openApplication(at: url, configuration: configuration)
+    return try waitFor("Waiting for the official cloud client to start. Sign in if requested.") {
+        NSRunningApplication.runningApplications(withBundleIdentifier: identifier).first
+    }
+}
+
+
 func dispatch(_ task: Task, claims: URL) throws {
     guard AXIsProcessTrusted() else {
         throw DispatchFailure("Allow Accessibility for this helper in System Settings.")
     }
-    guard let app = NSRunningApplication.runningApplications(withBundleIdentifier: "com.quark.desktop").first else {
-        throw DispatchFailure("Open the Quark desktop app and sign in first.")
+    guard mountedNASStaging() != nil else {
+        throw DispatchFailure("Waiting for the NAS SMB mount.")
     }
+    let app = try ensureClientRunning("com.quark.desktop")
     let root = AXUIElementCreateApplication(app.processIdentifier)
     if let url = app.bundleURL {
         let configuration = NSWorkspace.OpenConfiguration()

@@ -45,7 +45,7 @@ NAS_MEDIA_ROOT = Path(os.environ.get("CLOUDSHARE_MEDIA_ROOT", "/downloads"))
 class CloudShare(_PluginBase):
     plugin_name = "CloudShare"
     plugin_desc = "汇集夸克、阿里云盘与 Telegram 资源，下载到 NAS 并整理入库。"
-    plugin_version = "0.2.0"
+    plugin_version = "0.2.1"
     plugin_author = "Darin Ji"
     plugin_icon = "Moviepilot_A.png"
     plugin_label = "资源搜索"
@@ -98,7 +98,7 @@ class CloudShare(_PluginBase):
             parsed = urlsplit(address)
             if (parsed.scheme not in {"http", "https"} or not parsed.hostname
                     or any((parsed.username, parsed.password, parsed.query, parsed.fragment))
-                    or not cookie or not root.is_absolute() or ".." in root.parts):
+                    or not root.is_absolute() or ".." in root.parts):
                 return
             telegram_config = Path("/config/cloudshare/telegram.json")
             telegram = None
@@ -108,11 +108,17 @@ class CloudShare(_PluginBase):
                     "aliyun": self.settings["telegram_aliyun_bot"],
                 }, providers={p for p in ("quark", "aliyun") if self.settings[f"telegram_{p}_enabled"]},
                     proxy_url=config.get("telegram_proxy"))
+            provider = None
+            if cookie:
+                try:
+                    provider = Quark(cookie)
+                except QuarkError:
+                    logger.warning("CloudShare Quark credentials are invalid")
             self.queue = JobQueue(
-                self.get_data_path(), root, address, Quark(cookie), telegram=telegram,
+                self.get_data_path(), root, address, provider, telegram=telegram,
                 aliyun_auto=bool(config.get("aliyun_auto")) and
                 Path("/config/cloudshare/aliyun/cloudshare.json").is_file(), history=self.history)
-            self.discovery = CloudShareDiscovery(address, telegram=telegram)
+            self.discovery = CloudShareDiscovery(address, telegram=telegram) if provider is not None else None
             if config.get("aliyun_enabled", True) and self.desktop_inbox is not None:
                 self.aliyun = AliyunDiscovery(
                     address, telegram=telegram.for_provider("aliyun") if telegram is not None else None)

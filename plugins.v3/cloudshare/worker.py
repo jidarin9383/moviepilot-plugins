@@ -39,6 +39,8 @@ class CloudShareWorker:
 
     def run(self, job_id, candidate, files, *, check=lambda: None, refresh=None, save_only=False,
             desktop_folder=None):
+        if self.provider is None:
+            raise JobWaiting("Quark credentials are not configured")
         with self._locked():
             try:
                 return self._run(job_id, candidate, tuple(files), check, refresh, save_only, desktop_folder)
